@@ -71,6 +71,28 @@ class PuregymAPIClient():
             return n
         else:
             return response.raise_for_status()
+     
+    def get_gym_history(self, gym, return_name=False):
+        if not self.authed:
+            return PermissionError('Not authed: call login(email, pin)')
+        if gym is None:
+            if self.home_gym_id is None:
+                self.get_home_gym()
+            gym_id = self.home_gym_id
+        elif isinstance(gym, int):
+            gym_id = gym
+            gym = None
+        else:
+            gym, gym_id = self.get_gym(gym)  # name->id
+        response = self.session.get(f'https://capi.puregym.com/api/v1/gyms/{gym_id}/attendance/history', headers=self.headers)
+        if response.status_code == 200:
+            data = response.json()['gymTimeAttendance']
+            if return_name:
+                return data, gym
+            return data
+        else:
+            return response.raise_for_status()
+        
 
 if __name__ == '__main__':
     from argparse import ArgumentParser
