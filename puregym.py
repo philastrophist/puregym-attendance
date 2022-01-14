@@ -47,11 +47,13 @@ class PuregymAPIClient():
 
         response = self.session.get('https://capi.puregym.com/api/v1/member', headers=self.headers)
         if response.status_code == 200:
-            self.home_gym_id = response.json()['homeGymId']
+            json =  response.json()
+            self.home_gym_id, self.home_gym_name = json['homeGymId'], json['homeGymName']
         else:
             return ValueError('Response '+str(response.status_code))
+        return self.home_gym_id, self.home_gym_name
     
-    def get_gym_attendance(self, gym, return_name=False):
+    def get_gym_attendance(self, gym=None):
         if not self.authed:
             return PermissionError('Not authed: call login(email, pin)')
         if gym is None:
@@ -65,14 +67,12 @@ class PuregymAPIClient():
             gym, gym_id = self.get_gym(gym)  # name->id
         response = self.session.get(f'https://capi.puregym.com/api/v1/gyms/{gym_id}/attendance', headers=self.headers)
         if response.status_code == 200:
-            n = response.json()['totalPeopleInGym']
-            if return_name:
-                return n, gym
-            return n
+            json = response.json()
+            return json['totalPeopleInGym'], json['lastRefreshed'], gym
         else:
             return response.raise_for_status()
      
-    def get_gym_history(self, gym, return_name=False):
+    def get_gym_history(self, gym):
         if not self.authed:
             return PermissionError('Not authed: call login(email, pin)')
         if gym is None:
@@ -87,9 +87,7 @@ class PuregymAPIClient():
         response = self.session.get(f'https://capi.puregym.com/api/v1/gyms/{gym_id}/attendance/history', headers=self.headers)
         if response.status_code == 200:
             data = response.json()['gymTimeAttendance']
-            if return_name:
-                return data, gym
-            return data
+            return data, gym
         else:
             return response.raise_for_status()
         
