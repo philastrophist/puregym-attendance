@@ -72,7 +72,7 @@ class PuregymAPIClient():
         else:
             return response.raise_for_status()
      
-    def get_gym_history(self, gym):
+    def get_gym_history(self, gym=None):
         if not self.authed:
             return PermissionError('Not authed: call login(email, pin)')
         if gym is None:
